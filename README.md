@@ -3,7 +3,7 @@
 ## Project Name: CCIP 
 CCIP is a calculation from a weapon's sighting system which predicts its payload's point of impact. This constinuously updated calculation is used for displaying information to a person's HUD or in our case visualize the tracking of a payload. 
 
-##MVP (Minimum Viable Product) 
+## MVP (Minimum Viable Product) 
 - Visually see tracking of destination object / payloads trajectory
 
 ### Measurements
@@ -12,5 +12,5 @@ CCIP is a calculation from a weapon's sighting system which predicts its payload
 
 Add more stuff etc.
 
-##Authors & Contacts:
+## Authors & Contacts:
 Tanner Muirhead - tmuirhea@ucsc.edu
