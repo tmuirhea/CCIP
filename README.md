@@ -14,3 +14,7 @@ Add more stuff and change all this etc.
 
 ## Authors & Contacts:
 Tanner Muirhead - tmuirhea@ucsc.edu
+
+Kevin Jesubalan - kjesubal@ucsc.edu
+
+Alexander Schulte - aschulte@ucsc.edu

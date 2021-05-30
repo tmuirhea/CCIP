@@ -134,6 +134,7 @@ class VehicleClosedLoopControl:
         self.aileronFromRoll = PIDControl()
 
     def Update(self, referenceCommands=Controls.referenceCommands()):
+        #modifiedRef = OurModule(referenceCommands)
         self.VAMinputs = self.UpdateControlCommands(referenceCommands, self.VAM.getVehicleState())
         self.VAM.Update(self.VAMinputs)
 
