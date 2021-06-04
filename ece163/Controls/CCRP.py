@@ -19,7 +19,7 @@ class PayloadAerodynamicModel:
         self.cofDrag = cofDrag
         self.mass = mass
         self.dT = dT
-
+    
     def calculateFuturePos(self, time):
         #very simplistic does not account for wind or drag as is.
         ## should pd be included in here?
@@ -28,7 +28,8 @@ class PayloadAerodynamicModel:
         pe = self.state.pe + self.state.v * time
         pd = self.state.pd + self.state.w * time
         return pn, pe, pd
-
+    def reset(self):
+        self.state = States.vehicleState()
     def Update(self):
         self.pn = self.state.pn + self.state.u * self.dT
         self.pe = self.state.pe + self.state.v * self.dT
@@ -40,9 +41,11 @@ class PayloadAerodynamicModel:
         self.w = self.w + self.dT * (VPC.g0 - (VPC.rho * self.planArea * self.cofDrag * magnitude * self.w) / self.mass)
 
         ##WIND?
+        ### Alex: I think wind is calulated
+        ### in update forces. I think we just need to call it
 
 class CCIP:
-    def __init__(self, mass, targetx, targety, targetz):
+    def __init__(self, mass, targetx = 10.0, targety = 10.0, targetz = 0.0):
         self.closed = VCLC.VehicleClosedLoopControl()
         self.payload = PayloadAerodynamicModel()
         self.dT = VPC.dT
@@ -54,13 +57,32 @@ class CCIP:
         self.targety = targety
         self.targetz = targetz
         self.isreleased = 0
-
     #for acquiring a new target
     def acquireTarget(self, targetx, targety, targetz):
         self.targetx = targetx
         self.targety = targety
         self.targetz = targetz
-
+    def getTarget(self):
+        return self.targetx,self.targety,self.targetz
+    #reset should set the payload back to nothing, set closed back to
+    # intial state,target to intital. 
+    def reset(self):
+        self.closed = VCLC.reset();
+        self.payload  = PayloadAerodynamicModel.reset()
+        self.x = 0
+        self.y = 0
+        self.z = 0
+        self.targetx = 10.0
+        self.targety = 10.0
+        self.targetz = 0.0
+        self.isreleased = 0
+        
+    #added some state setters and getters
+    def setVehicleState(self,state):
+        closed.VAM.VDM.state = state
+    def getVehicleState(self):
+        return closed.VAM.VDM.state
+    
     def createReference(self):
         x, y = self.targety - self.closed.getVehicleState().pe, self.targetx - self.closed.getVehicleState().pn
         course = math.pi / 2 - math.atan2(y, x)
@@ -83,7 +105,11 @@ class CCIP:
             z.append(z[i] + self.dT * v[i])
             i += 1
         return i * self.dT
-
+    #IsImapcted returns 1/0 if payload intersects target
+    def isImpacted(self):
+        if (payload.pn - self.targetx) < .5:
+            (payload.pe - self.targety) < .5:
+                return 1
     def Update(self, RefCommand):
         self.closed.Update(RefCommand)
         self.TOF = self.calculateTOF(self.payload)
@@ -96,6 +122,10 @@ class CCIP:
                     self.isreleased = 1
         if (self.isreleased == 1):  # if payload is released do an Update() amd check for impact
             self.payload.Update()
-            ## check for impact?
-        refCommand = self.createReference()
-        return refCommand
+            Impact = self.isImpacted()
+            #if impact "delete" payload and print
+            if Impact == 1:
+                print("IMPACT!!!!\n")
+                self.isreleased = 0
+                self.payload.reset()
+        RefCommand = self.createReference()
