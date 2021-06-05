@@ -1,5 +1,5 @@
 import math
-import VehicleClosedLoopControl as VCLC
+from ece163.Controls import VehicleClosedLoopControl as VCLC
 from ece163.Containers import States
 import ece163.Constants.VehiclePhysicalConstants as VPC
 import ece163.Containers.Controls as ctrl
@@ -31,15 +31,20 @@ class PayloadAerodynamicModel:
     def reset(self):
         self.state = States.vehicleState()
     def Update(self):
-        self.pn = self.state.pn + self.state.u * self.dT
-        self.pe = self.state.pe + self.state.v * self.dT
-        self.pd = self.state.pd + self.state.w * self.dT
-        magnitude = math.hypot(self.u, self.v, self.w)  # needed for calculating drag
-        #one timestep of updating speeds which is just drag and gravity in the case of the z direction
-        self.u = self.u - self.dT * (VPC.rho * self.planArea * self.cofDrag * magnitude * self.u) / self.mass
-        self.v = self.v - self.dT * (VPC.rho * self.planArea * self.cofDrag * magnitude * self.v) / self.mass
-        self.w = self.w + self.dT * (VPC.g0 - (VPC.rho * self.planArea * self.cofDrag * magnitude * self.w) / self.mass)
-
+        self.state.pn = self.state.pn + self.state.u * self.dT
+        self.state.pe = self.state.pe + self.state.v * self.dT
+        self.state.pd = self.state.pd - self.state.w * self.dT
+        if(self.state.pd > 0.0):
+            magnitude = math.hypot(self.state.u, self.state.v, self.state.w)  # needed for calculating drag
+            #one timestep of updating speeds which is just drag and gravity in the case of the z direction
+            self.state.u = self.state.u - self.dT * (VPC.rho * self.planArea * self.cofDrag * magnitude * self.state.u) / self.mass
+            self.state.v = self.state.v - self.dT * (VPC.rho * self.planArea * self.cofDrag * magnitude * self.state.v) / self.mass
+            self.state.w = self.state.w + self.dT * (VPC.g0 - (VPC.rho * self.planArea * self.cofDrag * magnitude * self.state.w) / self.mass)
+        else :
+            self.state.u = 0.0
+            self.state.v = 0.0
+            self.state.w = 0.0
+            self.state.pd = 0.0
         ##WIND?
         ### Alex: I think wind is calulated
         ### in update forces. I think we just need to call it
