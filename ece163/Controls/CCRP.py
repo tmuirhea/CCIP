@@ -129,10 +129,10 @@ class CCIP:
                     VPC.g0 - (VPC.rho * planArea * cofDrag * magnitude * w[i]) / (mass * 2)))
 
             x.append(x[i] + self.dT * u[i])
-            y.append(u[i] + self.dT * v[i])
+            y.append(y[i] + self.dT * v[i])
             z.append(z[i] + self.dT * w[i])
             i += 1
-        return x[i], z[i]
+        return x[i], y[i]
 
     # IsImapcted returns 1/0 if payload intersects target
     def isImpacted(self):
