@@ -26,8 +26,7 @@ class PayloadAerodynamicModel:
         ## I wanted to do futurepos in the TOF while loop but was unsure of converting u,v to pn,pe
         pn = self.state.pn + self.state.u * time
         pe = self.state.pe + self.state.v * time
-        pd = self.state.pd + self.state.w * time
-        return pn, pe, pd
+        return pn, pe
     def reset(self):
         self.state = States.vehicleState()
     def Update(self):
@@ -50,7 +49,7 @@ class PayloadAerodynamicModel:
         ### in update forces. I think we just need to call it
 
 class CCIP:
-    def __init__(self, targetx = 10.0, targety = 10.0, targetz = 0.0):
+    def __init__(self, targetx = 100.0, targety = 100.0, targetz = 0.0):
         self.closed = VCLC.VehicleClosedLoopControl()
         self.payload = PayloadAerodynamicModel()
         self.dT = VPC.dT
@@ -76,7 +75,6 @@ class CCIP:
         self.payload.reset()
         self.x = 0
         self.y = 0
-        self.z = 0
         self.targetx = 10.0
         self.targety = 10.0
         self.targetz = 0.0
@@ -95,10 +93,11 @@ class CCIP:
         return reference
 
     ##added variables here to allow for releasing different payloads
-    def releasePayload(self, state, mass=10, area=math.pi, cofDrag=0.5):
-        self.payload = PayloadAerodynamicModel(state.pn, state.pe, state.pd, state.u, state.v, state.w, self.dT, mass,
+    def releasePayload(self, mass=10, area=math.pi, cofDrag=0.5):
+        state = self.closed.getVehicleState()
+        dot = self.closed.VAM.vehicle.dot
+        self.payload = PayloadAerodynamicModel(state.pn, state.pe, state.pd, dot.pn, dot.pe, dot.pd, self.dT, mass,
                                                area, cofDrag)
-
     def calculateTOF(self, payload):
         z = [payload.state.pd]
         v = [payload.state.w]
@@ -109,6 +108,7 @@ class CCIP:
                         VPC.g0 - (VPC.rho * payload.planArea * payload.cofDrag * magnitude * v[i]) / payload.mass))
             z.append(z[i] + self.dT * v[i])
             i += 1
+        print(i * self.dT)
         return i * self.dT
     #IsImapcted returns 1/0 if payload intersects target
     def isImpacted(self):
@@ -118,12 +118,11 @@ class CCIP:
     def Update(self, RefCommand):
         self.closed.Update(RefCommand)
         self.TOF = self.calculateTOF(self.payload)
-        self.x, self.y, self.z = self.payload.calculateFuturePos(self.TOF)
+        self.x, self.y = self.payload.calculateFuturePos(self.TOF)
         # if targets line up
         if ((self.x - self.targetx) < .5):  # if x coordinates withing half meter
             if ((self.y - self.targety) < .5):
-                if ((self.z - self.targetz) < .5):
-                    self.releasePayload(self.closed.VAM.vehicle.state)
+                    self.releasePayload()
                     self.isreleased = 1
         if (self.isreleased == 1):  # if payload is released do an Update() amd check for impact
             self.payload.Update()
