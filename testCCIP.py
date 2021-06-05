@@ -56,25 +56,28 @@ for i in range(steps):
     payloady[i] = Model.payload.state.pe
     payloadx[i] = Model.payload.state.pn
 fig, ax = plt.subplots(nrows=3, ncols=3)
-ax[0, 0].plot(t_data, planeheight, label="Z")
-ax[0, 1].plot(t_data, planeEast, label="Y")
-ax[0, 2].plot(t_data, planeNorth, label="X")
-ax[1, 0].plot(t_data, payloadU, label="payload u")
+ax[0, 0].plot(t_data, planeheight, label="Plane Height")
+ax[0, 1].plot(t_data, planeEast, label="Plane East")
+ax[0, 2].plot(t_data, planeNorth, label="Plane North")
+ax[1, 2].plot(t_data, payloadU, label="payload u")
 
 ax[1, 1].plot(t_data, payloadV, label="payload v")
 
-ax[1, 2].plot(t_data, payloadW, label="payload w")
+ax[1, 0].plot(t_data, payloadW, label="payload w")
 
 ax[2, 0].plot(t_data, payloadz, label="payload Z")
-ax[2, 1].plot(t_data, payloadx, label="payload Y")
-ax[2, 2].plot(t_data, payloady, label="payload X")
-ax[0, 0].legend()
-ax[0, 1].legend()
-ax[0, 2].legend()
-ax[1, 0].legend()
+ax[2, 1].plot(t_data, payloady, label="payload Y")
+ax[2, 2].plot(t_data, payloadx, label="payload X")
+ax[0,0].legend()
+ax[0,1].legend()
+ax[0,2].legend()
 
-ax[2, 0].legend()
-ax[2, 1].legend()
-ax[2, 2].legend()
+ax[1,0].legend()
+ax[1,1].legend()
+ax[1,2].legend()
+
+ax[2,0].legend()
+ax[2,1].legend()
+ax[2,2].legend()
 
 plt.show()

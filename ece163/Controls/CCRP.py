@@ -7,7 +7,7 @@ import ece163.Containers.Controls as ctrl
 
 class PayloadAerodynamicModel:
     # default assumes sphere of radius 1m and slow speeds for coefficient of drag
-    def __init__(self, pn=0.0, pe=0.0, pd=0.0, u=0.0, v=0.0, w=0.0, dT=VPC.dT, mass=100, planArea=math.pi, cofDrag=0.5):
+    def __init__(self, pn=0.0, pe=0.0, pd=0.0, u=0.0, v=0.0, w=0.0, dT=VPC.dT, mass=10, planArea=math.pi, cofDrag=0.5):
         self.state = States.vehicleState()
         self.state.pn = pn
         self.state.pe = pe
@@ -108,7 +108,6 @@ class CCIP:
                         VPC.g0 - (VPC.rho * payload.planArea * payload.cofDrag * magnitude * v[i]) / payload.mass))
             z.append(z[i] + self.dT * v[i])
             i += 1
-        print(i * self.dT)
         return i * self.dT
     #IsImapcted returns 1/0 if payload intersects target
     def isImpacted(self):
