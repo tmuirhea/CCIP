@@ -84,9 +84,9 @@ class CCIP:
         
     #added some state setters and getters
     def setVehicleState(self,state):
-        self.closed.VAM.VDM.state = state
+        self.closed.VAM.vehicle.state = state
     def getVehicleState(self):
-        return self.closed.VAM.VDM.state
+        return self.closed.VAM.vehicle.state
     
     def createReference(self):
         x, y = self.targety - self.closed.getVehicleState().pe, self.targetx - self.closed.getVehicleState().pn
@@ -112,8 +112,8 @@ class CCIP:
         return i * self.dT
     #IsImapcted returns 1/0 if payload intersects target
     def isImpacted(self):
-        if (self.payload.pn - self.targetx) < .5:
-            if (self.payload.pe - self.targety) < .5:
+        if (self.payload.state.pn - self.targetx) < .5:
+            if (self.payload.state.pe - self.targety) < .5:
                 return 1
     def Update(self, RefCommand):
         self.closed.Update(RefCommand)
@@ -123,7 +123,7 @@ class CCIP:
         if ((self.x - self.targetx) < .5):  # if x coordinates withing half meter
             if ((self.y - self.targety) < .5):
                 if ((self.z - self.targetz) < .5):
-                    self.releasePayload(self.closed.VAM.VDM.state)
+                    self.releasePayload(self.closed.VAM.vehicle.state)
                     self.isreleased = 1
         if (self.isreleased == 1):  # if payload is released do an Update() amd check for impact
             self.payload.Update()
@@ -134,3 +134,4 @@ class CCIP:
                 self.isreleased = 0
                 self.payload.reset()
         RefCommand = self.createReference()
+        return RefCommand
