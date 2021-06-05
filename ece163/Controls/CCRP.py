@@ -7,7 +7,7 @@ import ece163.Containers.Controls as ctrl
 
 class PayloadAerodynamicModel:
     # default assumes sphere of radius 1m and slow speeds for coefficient of drag
-    def __init__(self, pn=0.0, pe=0.0, pd=0.0, u=0.0, v=0.0, w=0.0, dT=VPC.dT, mass=10, planArea=math.pi, cofDrag=0.5):
+    def __init__(self, pn=0.0, pe=0.0, pd=0.0, u=0.0, v=0.0, w=0.0, dT=VPC.dT, mass=100, planArea=math.pi, cofDrag=0.5):
         self.state = States.vehicleState()
         self.state.pn = pn
         self.state.pe = pe
@@ -34,7 +34,7 @@ class PayloadAerodynamicModel:
         self.state.pn = self.state.pn + self.state.u * self.dT
         self.state.pe = self.state.pe + self.state.v * self.dT
         self.state.pd = self.state.pd + self.state.w * self.dT
-        if(self.state.pd > 0.0):
+        if(self.state.pd < 0.0):
             magnitude = math.hypot(self.state.u, self.state.v, self.state.w)  # needed for calculating drag
             #one timestep of updating speeds which is just drag and gravity in the case of the z direction
             self.state.u = self.state.u - self.dT * (VPC.rho * self.planArea * self.cofDrag * magnitude * self.state.u) / self.mass
@@ -50,7 +50,7 @@ class PayloadAerodynamicModel:
         ### in update forces. I think we just need to call it
 
 class CCIP:
-    def __init__(self, mass, targetx = 10.0, targety = 10.0, targetz = 0.0):
+    def __init__(self, targetx = 10.0, targety = 10.0, targetz = 0.0):
         self.closed = VCLC.VehicleClosedLoopControl()
         self.payload = PayloadAerodynamicModel()
         self.dT = VPC.dT
