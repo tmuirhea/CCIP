@@ -7,7 +7,7 @@ import ece163.Containers.Controls as ctrl
 
 class PayloadAerodynamicModel:
     # default assumes sphere of radius 1m and slow speeds for coefficient of drag
-    def __init__(self, pn=0.0, pe=0.0, pd=0.0, u=0.0, v=0.0, w=0.0, dT=VPC.dT, mass=10, planArea=math.pi, cofDrag=0.5):
+    def __init__(self, pn=0.0, pe=0.0, pd=0.0, u=0.0, v=0.0, w=0.0, dT=VPC.dT, mass=10, planArea=math.pi, cofDrag=0.5,released = 0):
         self.state = States.vehicleState()
         self.state.pn = pn
         self.state.pe = pe
@@ -19,31 +19,33 @@ class PayloadAerodynamicModel:
         self.cofDrag = cofDrag
         self.mass = mass
         self.dT = dT
-    
-    def calculateFuturePos(self, time):
+        self.released = released
+    def calculateFuturePos(self, time, u,v):
         #very simplistic does not account for wind or drag as is.
         ## should pd be included in here?
         ## I wanted to do futurepos in the TOF while loop but was unsure of converting u,v to pn,pe
-        pn = self.state.pn + self.state.u * time
-        pe = self.state.pe + self.state.v * time
+        pn = self.state.pn + (u * time)
+        print(time)
+        pe = self.state.pe + (v * time)
         return pn, pe
     def reset(self):
         self.state = States.vehicleState()
     def Update(self):
-        self.state.pn = self.state.pn + self.state.u * self.dT
-        self.state.pe = self.state.pe + self.state.v * self.dT
-        self.state.pd = self.state.pd + self.state.w * self.dT
-        if(self.state.pd < 0.0):
-            magnitude = math.hypot(self.state.u, self.state.v, self.state.w)  # needed for calculating drag
-            #one timestep of updating speeds which is just drag and gravity in the case of the z direction
-            self.state.u = self.state.u - self.dT * (VPC.rho * self.planArea * self.cofDrag * magnitude * self.state.u) / self.mass
-            self.state.v = self.state.v - self.dT * (VPC.rho * self.planArea * self.cofDrag * magnitude * self.state.v) / self.mass
-            self.state.w = self.state.w + self.dT * (VPC.g0 - (VPC.rho * self.planArea * self.cofDrag * magnitude * self.state.w) / self.mass)
-        else :
-            self.state.u = 0.0
-            self.state.v = 0.0
-            self.state.w = 0.0
-            self.state.pd = 0.0
+        if self.released == 1:
+            self.state.pn = self.state.pn + self.state.u * self.dT
+            self.state.pe = self.state.pe + self.state.v * self.dT
+            self.state.pd = self.state.pd + self.state.w * self.dT
+            if(self.state.pd < 0.0):
+                magnitude = math.hypot(self.state.u, self.state.v, self.state.w)  # needed for calculating drag
+                #one timestep of updating speeds which is just drag and gravity in the case of the z direction
+                self.state.u = self.state.u - self.dT * (VPC.rho * self.planArea * self.cofDrag * magnitude * self.state.u) / self.mass
+                self.state.v = self.state.v - self.dT * (VPC.rho * self.planArea * self.cofDrag * magnitude * self.state.v) / self.mass
+                self.state.w = self.state.w + self.dT * (VPC.g0 - (VPC.rho * self.planArea * self.cofDrag * magnitude * self.state.w) / self.mass)
+            else :
+                self.state.u = 0.0
+                self.state.v = 0.0
+                self.state.w = 0.0
+                self.state.pd = 0.0
         ##WIND?
         ### Alex: I think wind is calulated
         ### in update forces. I think we just need to call it
@@ -78,7 +80,6 @@ class CCIP:
         self.targetx = 10.0
         self.targety = 10.0
         self.targetz = 0.0
-        self.isreleased = 0
         
     #added some state setters and getters
     def setVehicleState(self,state):
@@ -97,39 +98,45 @@ class CCIP:
         state = self.closed.getVehicleState()
         dot = self.closed.VAM.vehicle.dot
         self.payload = PayloadAerodynamicModel(state.pn, state.pe, state.pd, dot.pn, dot.pe, dot.pd, self.dT, mass,
-                                               area, cofDrag)
-    def calculateTOF(self, payload):
-        z = [payload.state.pd]
-        v = [payload.state.w]
+                                               area, cofDrag, 1)
+    def calculateTOF(self, state,planArea,cofDrag,mass):
+        z = [state.pd]
+        print(z)
+        v = [state.w]
         i = 0
         while z[i] < 0:
-            magnitude = math.hypot(payload.state.u, payload.state.v, v[i])  # needed for calculating drag
+            magnitude = math.hypot(state.u, state.v, v[i])  # needed for calculating drag
             v.append(v[i] + self.dT * (
-                        VPC.g0 - (VPC.rho * payload.planArea * payload.cofDrag * magnitude * v[i]) / payload.mass))
+                        VPC.g0 - (VPC.rho * planArea * cofDrag * magnitude * v[i]) / mass))
             z.append(z[i] + self.dT * v[i])
             i += 1
         return i * self.dT
     #IsImapcted returns 1/0 if payload intersects target
     def isImpacted(self):
-        if (self.payload.state.pn - self.targetx) < .5:
-            if (self.payload.state.pe - self.targety) < .5:
-                return 1
+        if abs(self.payload.state.pn - self.targetx) < .5:
+            if abs(self.payload.state.pn - self.targetx) < .5:
+                if abs(self.payload.state.pn - self.targetx) < .5:
+                    print(self.payload.state.pd)
+                    print(self.payload.state.pe)
+                    print(self.payload.state.pn)
+                    return 1
     def Update(self, RefCommand):
         self.closed.Update(RefCommand)
-        self.TOF = self.calculateTOF(self.payload)
-        self.x, self.y = self.payload.calculateFuturePos(self.TOF)
+        self.TOF = self.calculateTOF(self.closed.VAM.vehicle.state,math.pi,.5,10)
+        self.x, self.y = self.payload.calculateFuturePos(self.TOF, self.closed.VAM.vehicle.state.u, self.closed.VAM.vehicle.state.v)
         # if targets line up
-        if ((self.x - self.targetx) < .5):  # if x coordinates withing half meter
-            if ((self.y - self.targety) < .5):
+        if (abs(self.x - self.targetx) < .5):  # if x coordinates withing half meter
+            if (abs(self.y - self.targety) < .5):
+                if self.payload.released == 0:
                     self.releasePayload()
-                    self.isreleased = 1
-        if (self.isreleased == 1):  # if payload is released do an Update() amd check for impact
+                    print("released")
+        if (self.payload.released == 1):  # if payload is released do an Update() amd check for impact
             self.payload.Update()
+            
             Impact = self.isImpacted()
             #if impact "delete" payload and print
             if Impact == 1:
                 print("IMPACT!!!!\n")
-                self.isreleased = 0
-                self.payload.reset()
+                #self.payload.released = 0
         RefCommand = self.createReference()
         return RefCommand
