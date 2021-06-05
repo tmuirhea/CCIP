@@ -20,12 +20,12 @@ class PayloadAerodynamicModel:
         self.mass = mass
         self.dT = dT
         self.released = released
-    def calculateFuturePos(self,state, time, u,v):
+    def calculateFuturePos(self, time,state,dot):
         #very simplistic does not account for wind or drag as is.
         ## should pd be included in here?
         ## I wanted to do futurepos in the TOF while loop but was unsure of converting u,v to pn,pe
-        pn = state.pn + (u * time)
-        pe = state.pe + (v * time)
+        pn = state.pn + (dot.u * time)
+        pe = state.pe + (dot.v * time)
         return pn, pe
     def reset(self):
         self.state = States.vehicleState()
@@ -89,7 +89,7 @@ class CCIP:
     def createReference(self):
         x, y = self.targety - self.closed.getVehicleState().pe, self.targetx - self.closed.getVehicleState().pn
         course = math.pi / 2 - math.atan2(y, x)
-        reference = ctrl.referenceCommands(courseCommand=course)
+        reference = ctrl.referenceCommands(courseCommand=course,altitudeCommand = 1000)
         return reference
 
     ##added variables here to allow for releasing different payloads
@@ -106,24 +106,27 @@ class CCIP:
         while z[i] < 0:
             magnitude = math.hypot(state.u, state.v, v[i])  # needed for calculating drag
             v.append(v[i] + self.dT * (
-                        VPC.g0 - (VPC.rho * planArea * cofDrag * magnitude * v[i]) / mass))
+                        VPC.g0 - (VPC.rho * planArea * cofDrag * magnitude * v[i]) / (mass*2)))
             z.append(z[i] + self.dT * v[i])
             i += 1
         return i * self.dT
     #IsImapcted returns 1/0 if payload intersects target
     def isImpacted(self):
-        if abs(self.payload.state.pn - self.targetx) < 100:
-            if abs(self.payload.state.pe - self.targety) < 100:
-                if abs(self.payload.state.pd - self.targetz) < 100:
+        if abs(self.payload.state.pn - self.targetx) < 10:
+            if abs(self.payload.state.pe - self.targety) < 10:
+                if abs(self.payload.state.pd - self.targetz) < 1:
+                    print(self.payload.state.pn)
+                    print(self.payload.state.pe)
+                    print(self.payload.state.pd)
                     return 1
     def Update(self, RefCommand):
         self.closed.Update(RefCommand)
-        self.TOF = self.calculateTOF(self.closed.VAM.vehicle.state,math.pi,.5,1000)
-        self.x, self.y = self.payload.calculateFuturePos(self.TOF, self.closed.VAM.vehicle.state,self.closed.VAM.vehicle.state.u, self.closed.VAM.vehicle.state.v)
+        self.TOF = self.calculateTOF(self.closed.VAM.vehicle.state,math.pi,.5,25)
+        self.x, self.y = self.payload.calculateFuturePos(self.TOF, self.closed.VAM.vehicle.state, self.closed.VAM.vehicle.dot)
         # if targets line up
-        print(self.x)
-        if (abs(self.x - self.targetx) < 500):  # if x coordinates withing half meter
-            if (abs(self.y - self.targety) < 150):
+
+        if (abs(self.x - self.targetx) < 5):  # if x coordinates withing half meter
+            if (abs(self.y - self.targety) < 1):
                 if self.payload.released == 0:
                     self.releasePayload()
                     print("released")
@@ -134,6 +137,5 @@ class CCIP:
             #if impact "delete" payload and print
             if Impact == 1:
                 print("IMPACT!!!!\n")
-                #self.payload.released = 0
         RefCommand = self.createReference()
         return RefCommand

@@ -24,9 +24,9 @@ from ece163.Controls import CCRP
 import numpy as np
 
 # Test 1
-steps = 2000
+steps = 5000
 Model = CCRP.CCIP(100, 100, 0)
-
+Model.closed.VAM.vehicle.state.pd = -1000
 planeheight = [0 for i in range(steps)]
 payloadU = [0 for i in range(steps)]
 
@@ -39,6 +39,7 @@ payloadx = [0 for i in range(steps)]
 payloadz = [0 for i in range(steps)]
 planeNorth = [0 for i in range(steps)]
 t_data = [i * VPC.dT for i in range(steps)]
+
 reference = Model.createReference()
 gains = Controls.controlGains(3.0, 0.04, 0.001, 2.0, 2.0, 5.0, 2.0, -10.0, -0.8, 0.08, 0.03, 2.0, 1.0, -0.5, -0.1)
 Model.closed.setControlGains(gains)
