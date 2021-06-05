@@ -67,7 +67,7 @@ class CCIP:
     #reset should set the payload back to nothing, set closed back to
     # intial state,target to intital. 
     def reset(self):
-        self.closed = VCLC.reset();
+        self.closed = VCLC.reset()
         self.payload  = PayloadAerodynamicModel.reset()
         self.x = 0
         self.y = 0
@@ -79,9 +79,9 @@ class CCIP:
         
     #added some state setters and getters
     def setVehicleState(self,state):
-        closed.VAM.VDM.state = state
+        self.closed.VAM.VDM.state = state
     def getVehicleState(self):
-        return closed.VAM.VDM.state
+        return self.closed.VAM.VDM.state
     
     def createReference(self):
         x, y = self.targety - self.closed.getVehicleState().pe, self.targetx - self.closed.getVehicleState().pn
@@ -107,8 +107,8 @@ class CCIP:
         return i * self.dT
     #IsImapcted returns 1/0 if payload intersects target
     def isImpacted(self):
-        if (payload.pn - self.targetx) < .5:
-            (payload.pe - self.targety) < .5:
+        if (self.payload.pn - self.targetx) < .5:
+            if (self.payload.pe - self.targety) < .5:
                 return 1
     def Update(self, RefCommand):
         self.closed.Update(RefCommand)
