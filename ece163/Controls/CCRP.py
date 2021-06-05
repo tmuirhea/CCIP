@@ -37,9 +37,9 @@ class PayloadAerodynamicModel:
             if(self.state.pd < 0.0):
                 magnitude = math.hypot(self.state.u, self.state.v, self.state.w)  # needed for calculating drag
                 #one timestep of updating speeds which is just drag and gravity in the case of the z direction
-                self.state.u = self.state.u - self.dT * (VPC.rho * self.planArea * self.cofDrag * magnitude * self.state.u) / self.mass
-                self.state.v = self.state.v - self.dT * (VPC.rho * self.planArea * self.cofDrag * magnitude * self.state.v) / self.mass
-                self.state.w = self.state.w + self.dT * (VPC.g0 - (VPC.rho * self.planArea * self.cofDrag * magnitude * self.state.w) / self.mass)
+                self.state.u = self.state.u - self.dT * (VPC.rho * self.planArea * self.cofDrag * magnitude * self.state.u) / (self.mass*2)
+                self.state.v = self.state.v - self.dT * (VPC.rho * self.planArea * self.cofDrag * magnitude * self.state.v) / (self.mass*2)
+                self.state.w = self.state.w + self.dT * (VPC.g0 - (VPC.rho * self.planArea * self.cofDrag * magnitude * self.state.w) / (self.mass*2))
             else :
                 self.state.u = 0.0
                 self.state.v = 0.0
