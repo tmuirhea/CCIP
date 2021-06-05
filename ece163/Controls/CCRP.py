@@ -67,8 +67,8 @@ class CCIP:
     #reset should set the payload back to nothing, set closed back to
     # intial state,target to intital. 
     def reset(self):
-        self.closed = VCLC.reset()
-        self.payload  = PayloadAerodynamicModel.reset()
+        self.closed.reset()
+        self.payload.reset()
         self.x = 0
         self.y = 0
         self.z = 0
