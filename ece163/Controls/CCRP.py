@@ -33,7 +33,7 @@ class PayloadAerodynamicModel:
     def Update(self):
         self.state.pn = self.state.pn + self.state.u * self.dT
         self.state.pe = self.state.pe + self.state.v * self.dT
-        self.state.pd = self.state.pd - self.state.w * self.dT
+        self.state.pd = self.state.pd + self.state.w * self.dT
         if(self.state.pd > 0.0):
             magnitude = math.hypot(self.state.u, self.state.v, self.state.w)  # needed for calculating drag
             #one timestep of updating speeds which is just drag and gravity in the case of the z direction
