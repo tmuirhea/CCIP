@@ -159,8 +159,10 @@ class CCIP:
                     self.releasePayload(math.pi, .5, 25)
                     print("released")
         # this is to check whether the plane needs to make another pass
-        print(math.hypot(self.x - self.targetx, self.y - self.targety), 2 * math.hypot(self.targetx - self.getVehicleState().pn, self.targety - self.getVehicleState().pe))
-        if math.hypot(self.x - self.targetx, self.y - self.targety)  > 2 * math.hypot(self.targetx - self.getVehicleState().pn, self.targety - self.getVehicleState().pe):
+        distanceError = math.hypot(self.x - self.targetx, self.y - self.targety)
+        planeDistanceFromTarget = math.hypot(self.targetx - self.getVehicleState().pn, self.targety - self.getVehicleState().pe)
+        print(distanceError, 2 * planeDistanceFromTarget)
+        if distanceError > 2 * planeDistanceFromTarget:
             self.tooclose = True
         else:
             self.tooclose = False
@@ -175,4 +177,5 @@ class CCIP:
 
         if not self.tooclose:  # this check is for holding course for a bit to so the plane can make another run
             RefCommand = self.createReference()
+
         return RefCommand
