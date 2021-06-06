@@ -156,7 +156,7 @@ class CCIP:
 
         # print(self.x, self.y, self.payload.released,self.tooclose)
         # if targets line up
-        if math.hypot(self.x - self.targetx, self.y - self.targety) < 5:
+        if math.hypot(self.x - self.targetx, self.y - self.targety) < 3:
             if not self.payload.released:
                 self.releasePayload(math.pi, .5, 25)
                 print("released at",  self.timeCount * self.dT,"secs")
