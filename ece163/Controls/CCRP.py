@@ -103,7 +103,10 @@ class CCIP:
     def createReference(self):
         x, y = self.targety - self.closed.getVehicleState().pe, self.targetx - self.closed.getVehicleState().pn
         course = math.pi / 2 - math.atan2(y, x)
-        reference = ctrl.referenceCommands(courseCommand=course)
+        if self.payload.released == 0:
+            reference = ctrl.referenceCommands(courseCommand=course)
+        else:
+            reference = ctrl.referenceCommands(courseCommand=self.closed.getVehicleState().chi)
         return reference
 
     ##added variables here to allow for releasing different payloads

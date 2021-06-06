@@ -76,26 +76,24 @@ for i in range(steps):
         payloadx[i] = Model.payload.state.pn
 
 fig, ax = plt.subplots(nrows=3, ncols=3)
-ax[0, 0].plot(t_data, planeheight, label="Plane Height")
-ax[0, 1].plot(t_data, planeEast, label="Plane East")
-ax[0, 2].plot(t_data, planeNorth, label="Plane North")
+ax[0, 0].plot(t_data, planeNorth, 'r',label="Plane North")
+ax[0, 1].plot(t_data, planeEast, 'g',label="Plane East")
+ax[0, 2].plot(t_data, planeheight,'b', label="Plane Height")
 
-ax[1, 2].plot(t_data, payloadU, label="payload \dot{o}")
-ax[1, 1].plot(t_data, payloadV, label="payload v")
-ax[1, 0].plot(t_data, payloadW, label="payload w")
+ax[1, 0].plot(t_data, payloadU, 'r',label=r'payload $\dot{pn}$')
+ax[1, 1].plot(t_data, payloadV, 'g',label=r'payload $\dot{pe}$')
+ax[1, 2].plot(t_data, payloadW, 'b',label=r'payload $\dot{pd}$')
 
-ax[2, 0].plot(t_data, payloadz, label="payload Z")
-ax[2, 1].plot(t_data, payloady, label="payload Y")
-ax[2, 2].plot(t_data, payloadx, label="payload X")
+ax[2, 0].plot(t_data, payloadx, 'r',label="payload pn")
+ax[2, 1].plot(t_data, payloady, 'g',label="payload pe")
+ax[2, 2].plot(t_data, payloadz, 'b',label="payload height")
 
 ax[0, 0].legend()
 ax[0, 1].legend()
 ax[0, 2].legend()
-
 ax[1, 0].legend()
 ax[1, 1].legend()
 ax[1, 2].legend()
-
 ax[2, 0].legend()
 ax[2, 1].legend()
 ax[2, 2].legend()
