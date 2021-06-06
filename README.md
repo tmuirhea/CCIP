@@ -12,7 +12,7 @@ python3 testCCIP.py
 ```
 ### What am I looking at?
 
-Running testCCIP.py will create a 3x3 plot representing the position of the UAV where the first row represents the UAV's movement in the NED coordinate frame with respect to time in seconds. The second row plots the intertial velocities of the payload with respect to time in seconds. The third row shows the payload's coordinates in the NEU frame with respect to time. 
+Running testCCIP.py will create a 3x3 plot where the first row represents the UAV's movement in the NED coordinate frame with respect to time. The second row plots the intertial velocities of the payload with respect to time in seconds. The third row shows the payload's coordinates in the NEU frame with respect to time. 
 
 You will be able to see how our payload successfully intercepts the target at x_inertial=100, y_inertial=100, z_inertial=0. Inside our testing script, you will also be able to edit the target location. If you would like to change the altitude, you will need to set the parameters of pd for the UAV vehicle state. The higher the altitude, the more calculations will be required and will take longer to process. 
 
