@@ -19,7 +19,7 @@ You will be able to see how our payload successfully intercepts the target at x_
 As of now, our system can calculate and drop its payload accurately within 5 meters of the target at a height up to 1000 meters. This altitude is not the limit; it just takes a long time to continuously calculate drop positions from that high. This program will also work traveling any direction. We have also implemented a small state machine which checks to see if our UAV is too close to the target. If the UAV is too close, it will navigate away and re-approach. After the payload has been released, the UAV will continue to maintain altitude without a heading until another target is acquired.
 
 ### Bugs To Report
-There are no major bugs to report but we would like to make the estimations more accurate
+There are no major bugs to report but we would like to make the estimations more accurate.
 
 ### To-Do
 1. We are going to add multiple targets to destroy so our UAV will "fire and forget" its payload and immediately change course to the next target automatically.
