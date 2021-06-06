@@ -49,14 +49,14 @@ reference = Model.createReference()
 # creating some gains and setting our plane to use those gains
 gains = Controls.controlGains(3.0, 0.04, 0.001, 2.0, 2.0, 5.0, 2.0, -10.0, -0.8, 0.08, 0.03, 2.0, 1.0, -0.5, -0.1)
 Model.closed.setControlGains(gains)
-#interating for # of steps
+# interating for # of steps
 for i in range(steps):
     # plane will fly using Model.update and eventually release a payload setting payload.released to 1
     reference = Model.Update(reference)
     planeEast[i] = Model.closed.VAM.vehicle.state.pe
     planeNorth[i] = Model.closed.VAM.vehicle.state.pn
     planeheight[i] = -Model.closed.VAM.vehicle.state.pd
-    #uses plane states until the payload is released (since it is attached)
+    # uses plane states until the payload is released (since it is attached)
     if Model.payload.released == 0:
         payloadU[i] = Model.closed.VAM.vehicle.dot.pn
         payloadV[i] = Model.closed.VAM.vehicle.dot.pe
@@ -67,7 +67,7 @@ for i in range(steps):
 
     # checking whether payload has been released
     if Model.payload.released == 1:
-        #once the payload is released will start tracking the payload variables
+        # once the payload is released will start tracking the payload variables
         payloadU[i] = Model.payload.state.u
         payloadV[i] = Model.payload.state.v
         payloadW[i] = Model.payload.state.w
@@ -76,26 +76,57 @@ for i in range(steps):
         payloadx[i] = Model.payload.state.pn
 
 fig, ax = plt.subplots(nrows=3, ncols=3)
-ax[0, 0].plot(t_data, planeNorth, 'r',label="Plane North")
-ax[0, 1].plot(t_data, planeEast, 'g',label="Plane East")
-ax[0, 2].plot(t_data, planeheight,'b', label="Plane Height")
+ax[0, 0].plot(t_data, planeNorth, 'r', label="Plane North")
+ax[0, 1].plot(t_data, planeEast, 'g', label="Plane East")
+ax[0, 2].plot(t_data, planeheight, 'b', label="Plane Height")
 
-ax[1, 0].plot(t_data, payloadU, 'r',label=r'payload $\dot{pn}$')
-ax[1, 1].plot(t_data, payloadV, 'g',label=r'payload $\dot{pe}$')
-ax[1, 2].plot(t_data, payloadW, 'b',label=r'payload $\dot{pd}$')
+ax[1, 0].plot(t_data, payloadU, 'r', label=r'payload $\dot{pn}$')
+ax[1, 1].plot(t_data, payloadV, 'g', label=r'payload $\dot{pe}$')
+ax[1, 2].plot(t_data, payloadW, 'b', label=r'payload $\dot{pd}$')
 
-ax[2, 0].plot(t_data, payloadx, 'r',label="payload pn")
-ax[2, 1].plot(t_data, payloady, 'g',label="payload pe")
-ax[2, 2].plot(t_data, payloadz, 'b',label="payload height")
+ax[2, 0].plot(t_data, payloadx, 'r', label="payload pn")
+ax[2, 1].plot(t_data, payloady, 'g', label="payload pe")
+ax[2, 2].plot(t_data, payloadz, 'b', label="payload height")
 
 ax[0, 0].legend()
+ax[0, 0].set_xlabel("time(s)")
+ax[0, 0].set_ylabel("position (m)")
+
 ax[0, 1].legend()
+ax[0, 1].set_xlabel("time(s)")
+ax[0, 1].set_ylabel("position (m)")
+ax[0, 1].set_title("Plane Position")
+
 ax[0, 2].legend()
+ax[0, 2].set_xlabel("time(s)")
+ax[0, 2].set_ylabel("position (m)")
+
+
 ax[1, 0].legend()
+ax[1, 0].set_xlabel("time(s)")
+ax[1, 0].set_ylabel("position (m)")
+
 ax[1, 1].legend()
+ax[1, 1].set_xlabel("time(s)")
+ax[1, 1].set_ylabel("position (m)")
+ax[1, 1].set_title("Payload Position")
+
 ax[1, 2].legend()
+ax[1, 2].set_xlabel("time(s)")
+ax[1, 2].set_ylabel("position (m)")
+
 ax[2, 0].legend()
+ax[2, 0].set_xlabel("time(s)")
+ax[2, 0].set_ylabel("velocity (m/s)")
+
 ax[2, 1].legend()
+ax[2, 1].set_xlabel("time(s)")
+ax[2, 1].set_ylabel("velocity (m/s)")
+ax[2, 1].set_title("Payload Velocity")
+
 ax[2, 2].legend()
+ax[2, 2].set_xlabel("time(s)")
+ax[2, 2].set_ylabel("velocity (m/s)")
+plt.subplots_adjust(hspace=1)
 
 plt.show()
