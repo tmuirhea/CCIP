@@ -8,7 +8,7 @@ CCIP is a calculation from a weapon's sighting system which predicts its payload
  
 ### Run Application
 ```
-python3 testCCIP.py
+python3 CCIPdemo.py
 ```
 ### What am I looking at?
 Running testCCIP.py will create a 3x3 plot where the first row represents the UAV's movement in the NEU coordinate frame with respect to time. The second row plots the inertial velocities of the payload with respect to time in seconds. The third row shows the payload's coordinates in the NEU frame with respect to time.
