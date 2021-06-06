@@ -129,6 +129,5 @@ ax[2, 2].legend()
 ax[2, 2].set_xlabel("time(s)")
 ax[2, 2].set_ylabel("velocity (m/s)")
 plt.subplots_adjust(hspace=1)
-manager = plt.get_current_fig_manager()
-manager.window.showMaximized()
+
 plt.show()
