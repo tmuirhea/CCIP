@@ -24,7 +24,7 @@ As of now, our system can calculate and drop its payload accurately within 5 met
 3. Implement different payload options such as missiles and spheres
 4. Create a GUI simulation with a release button
  
-## Authors & Contacts:
+### Authors & Contacts:
 Tanner Muirhead - tmuirhea@ucsc.edu
  
 Kevin Jesubalan - kjesubal@ucsc.edu
