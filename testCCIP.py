@@ -26,8 +26,8 @@ import numpy as np
 # Test 1
 steps = 5000
 targetx = 100
-Model = CCRP.CCIP(300, 300, 0)
-Model.closed.VAM.vehicle.state.pd = -500
+Model = CCRP.CCIP(10,10)
+Model.closed.VAM.vehicle.state.pd = -100
 planeheight = [0 for i in range(steps)]
 payloadU = [0 for i in range(steps)]
 

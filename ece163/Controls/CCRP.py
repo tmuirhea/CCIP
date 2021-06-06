@@ -7,7 +7,7 @@ import ece163.Containers.Controls as ctrl
 
 class PayloadAerodynamicModel:
     # default assumes sphere of radius 1m and slow speeds for coefficient of drag
-    def __init__(self, pn=0.0, pe=0.0, pd=0.0, u=0.0, v=0.0, w=0.0, dT=VPC.dT, planArea=math.pi, cofDrag=0.5, mass=25,
+    def __init__(self, pn=0.0, pe=0.0, pd=0.0, u=0.0, v=0.0, w=0.0, dT=VPC.dT, planArea=math.pi, cofDrag=0.5, mass=10,
                  released=0):
         self.state = States.vehicleState()
         self.state.pn = pn
@@ -38,12 +38,10 @@ class PayloadAerodynamicModel:
             self.state.pn = self.state.pn + self.state.u * self.dT
             self.state.pe = self.state.pe + self.state.v * self.dT
             self.state.pd = self.state.pd + self.state.w * self.dT
-            print(self.state.pd)
             if (self.state.pd < 0.0):
 
                 magnitude = math.hypot(self.state.u, self.state.v, self.state.w)  # needed for calculating drag
 
-                #print(magnitude)
                 # one timestep of updating speeds which is just drag and gravity in the case of the z direction
                 self.state.u = self.state.u - self.dT * (
                         VPC.rho * self.planArea * self.cofDrag * magnitude * self.state.u) / (self.mass * 2)
@@ -52,7 +50,6 @@ class PayloadAerodynamicModel:
                 self.state.w = self.state.w + self.dT * (
                         VPC.g0 - (VPC.rho * self.planArea * self.cofDrag * magnitude * self.state.w) / (
                         self.mass * 2))
-                #print(self.state.u, self.state.v, self.state.w)
             else:
                 self.state.u = 0.0
                 self.state.v = 0.0
@@ -64,7 +61,7 @@ class PayloadAerodynamicModel:
 
 
 class CCIP:
-    def __init__(self, targetx=300.0, targety=300.0, targetz=-0.0):
+    def __init__(self, targetx=100.0, targety=100.0):
         self.closed = VCLC.VehicleClosedLoopControl()
         self.payload = PayloadAerodynamicModel()
         self.dT = VPC.dT
@@ -74,14 +71,13 @@ class CCIP:
         self.z = 0
         self.targetx = targetx
         self.targety = targety
-        self.targetz = targetz
         self.isreleased = 0
+        self.tooclose = False
 
     # for acquiring a new target
-    def acquireTarget(self, targetx, targety, targetz):
+    def acquireTarget(self, targetx, targety):
         self.targetx = targetx
         self.targety = targety
-        self.targetz = targetz
 
     def getTarget(self):
         return self.targetx, self.targety, self.targetz
@@ -93,8 +89,8 @@ class CCIP:
         self.payload.reset()
         self.x = 0
         self.y = 0
-        self.targetx = 100.0
-        self.targety = 100.0
+        self.targetx = 10.0
+        self.targety = 10.0
         self.targetz = 0.0
 
     # added some state setters and getters
@@ -105,20 +101,17 @@ class CCIP:
         return self.closed.VAM.vehicle.state
 
     def createReference(self):
-        if self.payload.released:
-            reference = ctrl.referenceCommands(altitudeCommand=500)
-            return reference
         x, y = self.targety - self.closed.getVehicleState().pe, self.targetx - self.closed.getVehicleState().pn
         course = math.pi / 2 - math.atan2(y, x)
-        reference = ctrl.referenceCommands(courseCommand=course, altitudeCommand=500)
+        reference = ctrl.referenceCommands(courseCommand=course)
         return reference
 
     ##added variables here to allow for releasing different payloads
-    def releasePayload(self, area=math.pi, cofDrag=0.5, mass=25):
+    def releasePayload(self, area=math.pi, cofDrag=0.5, mass=10):
         state = self.closed.getVehicleState()
         dot = self.closed.VAM.vehicle.dot
         self.payload = PayloadAerodynamicModel(state.pn, state.pe, state.pd, dot.pn, dot.pe, dot.pd, self.dT,
-                                               area, cofDrag,mass, 1)
+                                               area, cofDrag, mass, 1)
 
     def calculateTOF(self, state, dot, planArea, cofDrag, mass):
         x = [state.pn]
@@ -129,13 +122,13 @@ class CCIP:
         w = [dot.pd]
 
         i = 0
-
         while z[i] < 0:
             magnitude = math.hypot(u[i], v[i], w[i])  # needed for calculating drag
             u.append(u[i] - self.dT * (VPC.rho * planArea * cofDrag * magnitude * u[i]) / (mass * 2))
             v.append(v[i] - self.dT * (VPC.rho * planArea * cofDrag * magnitude * v[i]) / (mass * 2))
-            w.append(w[i] + self.dT * (VPC.g0 - (VPC.rho * planArea * cofDrag * magnitude * w[i]) / (mass * 2)))
-            
+            w.append(w[i] + self.dT * (
+                    VPC.g0 - (VPC.rho * planArea * cofDrag * magnitude * w[i]) / (mass * 2)))
+
             x.append(x[i] + self.dT * u[i])
             y.append(y[i] + self.dT * v[i])
             z.append(z[i] + self.dT * w[i])
@@ -147,28 +140,39 @@ class CCIP:
 
         if abs(self.payload.state.pn - self.targetx) < 10:
             if abs(self.payload.state.pe - self.targety) < 10:
-                if abs(-self.payload.state.pd - self.targetz) < 1:
+                if self.payload.state.pd == 0:
                     print(self.payload.state.pn)
                     print(self.payload.state.pe)
                     print(self.payload.state.pd)
                     return 1
 
-    def Update(self, RefCommand=ctrl.referenceCommands(altitudeCommand=500)):
+    def Update(self, RefCommand):
+
         self.closed.Update(RefCommand)
-        self.x, self.y = self.calculateTOF(self.closed.VAM.vehicle.state, self.closed.VAM.vehicle.dot, math.pi, 0.5, 25)
+        self.x, self.y = self.calculateTOF(self.closed.VAM.vehicle.state, self.closed.VAM.vehicle.dot, math.pi, .5, 25)
         # if targets line up
-        print(self.x, self.y)
-        if (abs(self.x - self.targetx) < 5):  # if x coordinates withing half meter
-            if (abs(self.y - self.targety) < 1):
+        print(self.x, self.y, self.payload.released,self.tooclose)
+        #if abs(self.x - self.targetx) < 5:  # if x coordinates withing half meter
+        #    if abs(self.y - self.targety) < 1:
+        if math.hypot(self.x - self.targetx, self.y - self.targety) < 5:
                 if self.payload.released == 0:
-                    self.releasePayload()
+                    self.releasePayload(math.pi, .5, 25)
                     print("released")
-        if (self.payload.released == 1):  # if payload is released do an Update() amd check for impact
+        # this is to check whether the plane needs to make another pass
+        print(math.hypot(self.x - self.targetx, self.y - self.targety), 2 * math.hypot(self.targetx - self.getVehicleState().pn, self.targety - self.getVehicleState().pe))
+        if math.hypot(self.x - self.targetx, self.y - self.targety)  > 2 * math.hypot(self.targetx - self.getVehicleState().pn, self.targety - self.getVehicleState().pe):
+            self.tooclose = True
+        else:
+            self.tooclose = False
+
+        if self.payload.released == 1:  # if payload is released do an Update() amd check for impact
             self.payload.Update()
+
             Impact = self.isImpacted()
             # if impact "delete" payload and print
             if Impact == 1:
-                self.payload.released = 0
                 print("IMPACT!!!!\n")
-        RefCommand = self.createReference()
+
+        if not self.tooclose:  # this check is for holding course for a bit to so the plane can make another run
+            RefCommand = self.createReference()
         return RefCommand
