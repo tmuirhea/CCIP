@@ -26,7 +26,7 @@ import numpy as np
 # Test for CCIP
 # Next 3 lines are variables you can change for testing purposes
 steps = 5000  # number of steps you want to iterate simulation over (time = steps * 0.01)
-Model = CCRP.CCIP(100, 100)  # initialize with position of target you want plane to hit (target-x,target-y) z assumed 0
+Model = CCRP.CCIP(10, 10)  # initialize with position of target you want plane to hit (target-x,target-y) z assumed 0
 Model.closed.VAM.vehicle.state.pd = -100  # height you want plane to start at (plane will try to return to 100)
 
 # initializations of lists for storing data
@@ -80,13 +80,14 @@ ax[0, 0].plot(t_data, planeNorth, 'r', label="Plane North")
 ax[0, 1].plot(t_data, planeEast, 'g', label="Plane East")
 ax[0, 2].plot(t_data, planeheight, 'b', label="Plane Height")
 
-ax[1, 0].plot(t_data, payloadU, 'r', label=r'payload $\dot{pn}$')
-ax[1, 1].plot(t_data, payloadV, 'g', label=r'payload $\dot{pe}$')
-ax[1, 2].plot(t_data, payloadW, 'b', label=r'payload $\dot{pd}$')
+ax[1, 0].plot(t_data, payloadx, 'r', label="payload pn")
+ax[1, 1].plot(t_data, payloady, 'g', label="payload pe")
+ax[1, 2].plot(t_data, payloadz, 'b', label="payload height")
 
-ax[2, 0].plot(t_data, payloadx, 'r', label="payload pn")
-ax[2, 1].plot(t_data, payloady, 'g', label="payload pe")
-ax[2, 2].plot(t_data, payloadz, 'b', label="payload height")
+ax[2, 0].plot(t_data, payloadU, 'r', label=r'payload $\dot{pn}$')
+ax[2, 1].plot(t_data, payloadV, 'g', label=r'payload $\dot{pe}$')
+ax[2, 2].plot(t_data, payloadW, 'b', label=r'payload $\dot{pd}$')
+
 
 ax[0, 0].legend()
 ax[0, 0].set_xlabel("time(s)")
@@ -128,5 +129,6 @@ ax[2, 2].legend()
 ax[2, 2].set_xlabel("time(s)")
 ax[2, 2].set_ylabel("velocity (m/s)")
 plt.subplots_adjust(hspace=1)
-
+manager = plt.get_current_fig_manager()
+manager.window.showMaximized()
 plt.show()

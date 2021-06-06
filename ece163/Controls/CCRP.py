@@ -7,8 +7,7 @@ import ece163.Containers.Controls as ctrl
 
 class PayloadAerodynamicModel:
     # default assumes sphere of radius 1m and slow speeds for coefficient of drag
-    def __init__(self, pn=0.0, pe=0.0, pd=0.0, u=0.0, v=0.0, w=0.0, dT=VPC.dT, planArea=math.pi, cofDrag=0.5, mass=10,
-                 released=0):
+    def __init__(self, pn=0.0, pe=0.0, pd=0.0, u=0.0, v=0.0, w=0.0, dT=VPC.dT, planArea=math.pi, cofDrag=0.5, mass=10):
         self.state = States.vehicleState()
         self.state.pn = pn
         self.state.pe = pe
@@ -20,7 +19,7 @@ class PayloadAerodynamicModel:
         self.cofDrag = cofDrag
         self.mass = mass
         self.dT = dT
-        self.released = released
+        self.released = False
 
     def calculateFuturePos(self, time, state, dot):
         # very simplistic does not account for wind or drag as is.
@@ -34,7 +33,7 @@ class PayloadAerodynamicModel:
         self.state = States.vehicleState()
 
     def Update(self):
-        if self.released == 1:
+        if self.released == True:
             self.state.pn = self.state.pn + self.state.u * self.dT
             self.state.pe = self.state.pe + self.state.v * self.dT
             self.state.pd = self.state.pd + self.state.w * self.dT
@@ -71,8 +70,10 @@ class CCIP:
         self.z = 0
         self.targetx = targetx
         self.targety = targety
-        self.isreleased = 0
         self.tooclose = False
+        self.hitground = False
+        self.initialTime = 0
+        self.timeCount = 0
 
     # for acquiring a new target
     def acquireTarget(self, targetx, targety):
@@ -92,6 +93,9 @@ class CCIP:
         self.targetx = 10.0
         self.targety = 10.0
         self.targetz = 0.0
+        self.tooclose = False
+        self.hitground = False
+        self.timeCount = 0
 
     # added some state setters and getters
     def setVehicleState(self, state):
@@ -103,7 +107,7 @@ class CCIP:
     def createReference(self):
         x, y = self.targety - self.closed.getVehicleState().pe, self.targetx - self.closed.getVehicleState().pn
         course = math.pi / 2 - math.atan2(y, x)
-        if self.payload.released == 0:
+        if self.payload.released == False:
             reference = ctrl.referenceCommands(courseCommand=course)
         else:
             reference = ctrl.referenceCommands(courseCommand=self.closed.getVehicleState().chi)
@@ -114,7 +118,8 @@ class CCIP:
         state = self.closed.getVehicleState()
         dot = self.closed.VAM.vehicle.dot
         self.payload = PayloadAerodynamicModel(state.pn, state.pe, state.pd, dot.pn, dot.pe, dot.pd, self.dT,
-                                               area, cofDrag, mass, 1)
+                                               area, cofDrag, mass)
+        self.payload.released = True
 
     def calculateTOF(self, state, dot, planArea, cofDrag, mass):
         x = [state.pn]
@@ -140,45 +145,38 @@ class CCIP:
 
     # IsImapcted returns 1/0 if payload intersects target
     def isImpacted(self):
-
-        if abs(self.payload.state.pn - self.targetx) < 10:
-            if abs(self.payload.state.pe - self.targety) < 10:
-                if self.payload.state.pd == 0:
-                    print(self.payload.state.pn)
-                    print(self.payload.state.pe)
-                    print(self.payload.state.pd)
-                    return 1
+        if self.payload.released and not self.hitground and -self.payload.state.pd < 1:
+            print("Impact Coordinates")
+            print("pn:" , self.payload.state.pn, "pe:", self.payload.state.pe, self.timeCount * self.dT , "secs")
+            self.hitground = True
 
     def Update(self, RefCommand):
-
         self.closed.Update(RefCommand)
         self.x, self.y = self.calculateTOF(self.closed.VAM.vehicle.state, self.closed.VAM.vehicle.dot, math.pi, .5, 25)
+
+        # print(self.x, self.y, self.payload.released,self.tooclose)
         # if targets line up
-        print(self.x, self.y, self.payload.released,self.tooclose)
-        #if abs(self.x - self.targetx) < 5:  # if x coordinates withing half meter
-        #    if abs(self.y - self.targety) < 1:
         if math.hypot(self.x - self.targetx, self.y - self.targety) < 5:
-                if self.payload.released == 0:
-                    self.releasePayload(math.pi, .5, 25)
-                    print("released")
+            if not self.payload.released:
+                self.releasePayload(math.pi, .5, 25)
+                print("released at",  self.timeCount * self.dT,"secs")
         # this is to check whether the plane needs to make another pass
         distanceError = math.hypot(self.x - self.targetx, self.y - self.targety)
-        planeDistanceFromTarget = math.hypot(self.targetx - self.getVehicleState().pn, self.targety - self.getVehicleState().pe)
-        print(distanceError, 2 * planeDistanceFromTarget)
+        planeDistanceFromTarget = math.hypot(self.targetx - self.getVehicleState().pn,
+                                             self.targety - self.getVehicleState().pe)
+        # print(distanceError, 2 * planeDistanceFromTarget)
         if distanceError > 2 * planeDistanceFromTarget:
             self.tooclose = True
         else:
             self.tooclose = False
 
-        if self.payload.released == 1:  # if payload is released do an Update() amd check for impact
+        if self.payload.released:  # if payload is released do an Update() amd check for impact
             self.payload.Update()
 
-            Impact = self.isImpacted()
-            # if impact "delete" payload and print
-            if Impact == 1:
-                print("IMPACT!!!!\n")
+        self.isImpacted()
 
         if not self.tooclose:  # this check is for holding course for a bit to so the plane can make another run
             RefCommand = self.createReference()
 
+        self.timeCount += 1
         return RefCommand
