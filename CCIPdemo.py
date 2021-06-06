@@ -26,7 +26,7 @@ import numpy as np
 # Test for CCIP
 # Next 3 lines are variables you can change for testing purposes
 steps = 5000  # number of steps you want to iterate simulation over (time = steps * 0.01)
-Model = CCRP.CCIP(10, 10)  # initialize with position of target you want plane to hit (target-x,target-y) z assumed 0
+Model = CCRP.CCIP(100, 100)  # initialize with position of target you want plane to hit (target-x,target-y) z assumed 0
 Model.closed.VAM.vehicle.state.pd = -100  # height you want plane to start at (plane will try to return to 100)
 
 # initializations of lists for storing data
