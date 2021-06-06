@@ -7,7 +7,7 @@ import ece163.Containers.Controls as ctrl
 
 class PayloadAerodynamicModel:
     # default assumes sphere of radius 1m and slow speeds for coefficient of drag
-    def __init__(self, pn=0.0, pe=0.0, pd=0.0, u=0.0, v=0.0, w=0.0, dT=VPC.dT,  planArea=math.pi, cofDrag=0.5,mass=10,
+    def __init__(self, pn=0.0, pe=0.0, pd=0.0, u=0.0, v=0.0, w=0.0, dT=VPC.dT, planArea=math.pi, cofDrag=0.5, mass=10,
                  released=0):
         self.state = States.vehicleState()
         self.state.pn = pn
@@ -39,7 +39,10 @@ class PayloadAerodynamicModel:
             self.state.pe = self.state.pe + self.state.v * self.dT
             self.state.pd = self.state.pd + self.state.w * self.dT
             if (self.state.pd < 0.0):
+
                 magnitude = math.hypot(self.state.u, self.state.v, self.state.w)  # needed for calculating drag
+
+                print(magnitude)
                 # one timestep of updating speeds which is just drag and gravity in the case of the z direction
                 self.state.u = self.state.u - self.dT * (
                         VPC.rho * self.planArea * self.cofDrag * magnitude * self.state.u) / (self.mass * 2)
@@ -48,6 +51,7 @@ class PayloadAerodynamicModel:
                 self.state.w = self.state.w + self.dT * (
                         VPC.g0 - (VPC.rho * self.planArea * self.cofDrag * magnitude * self.state.w) / (
                         self.mass * 2))
+                print(self.state.u, self.state.v, self.state.w)
             else:
                 self.state.u = 0.0
                 self.state.v = 0.0
@@ -109,8 +113,8 @@ class CCIP:
     def releasePayload(self, area=math.pi, cofDrag=0.5, mass=10):
         state = self.closed.getVehicleState()
         dot = self.closed.VAM.vehicle.dot
-        self.payload = PayloadAerodynamicModel(state.pn, state.pe, state.pd, dot.pn, dot.pe, dot.pd, self.dT, mass,
-                                               area, cofDrag, 1)
+        self.payload = PayloadAerodynamicModel(state.pn, state.pe, state.pd, dot.pn, dot.pe, dot.pd, self.dT,
+                                               area, cofDrag,mass, 1)
 
     def calculateTOF(self, state, dot, planArea, cofDrag, mass):
         x = [state.pn]
