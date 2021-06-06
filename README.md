@@ -22,9 +22,10 @@ As of now, our system can calculate and drop its payload accurately within 5 met
 There are no major bugs to report but we would like to make the estimations more accurate.
 
 ### To-Do
-1. We are going to add multiple targets to destroy so our UAV will "fire and forget" its payload and immediately change course to the next target automatically.
+1. Include estimations for moving targets
+2. Create multiple targets so our UAV can go on a strike mission.
 2. We also want to include wind estimation for our time of flight and position release functions
-3. Implement different payload options such as missiles and spheres
+3. Implement a different payload option such as a missile
 4. Create a GUI simulation with a release button
  
 ### Authors & Contacts:
