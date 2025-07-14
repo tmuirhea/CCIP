@@ -75,7 +75,7 @@ for i in range(steps):
         payloady[i] = Model.payload.state.pe
         payloadx[i] = Model.payload.state.pn
 
-fig, ax = plt.subplots(nrows=3, ncols=3)
+fig, ax = plt.subplots(nrows=4, ncols=3)
 ax[0, 0].plot(t_data, planeNorth, 'r', label="Plane North")
 ax[0, 1].plot(t_data, planeEast, 'g', label="Plane East")
 ax[0, 2].plot(t_data, planeheight, 'b', label="Plane Height")
@@ -87,6 +87,11 @@ ax[1, 2].plot(t_data, payloadz, 'b', label="payload height")
 ax[2, 0].plot(t_data, payloadU, 'r', label=r'payload $\dot{pn}$')
 ax[2, 1].plot(t_data, payloadV, 'g', label=r'payload $\dot{pe}$')
 ax[2, 2].plot(t_data, payloadW, 'b', label=r'payload $\dot{pd}$')
+
+ax[3, 0].plot(payloady, payloadx, 'r', label=r'payload y vs. x')
+ax[3, 1].plot(payloadx, payloadz, 'r', label=r'payload x vs. z')
+ax[3, 2].plot(payloady, payloadz, 'r', label=r'payload y vs. z')
+
 
 
 ax[0, 0].legend()
@@ -128,6 +133,20 @@ ax[2, 1].set_title("Payload Velocity")
 ax[2, 2].legend()
 ax[2, 2].set_xlabel("time(s)")
 ax[2, 2].set_ylabel("velocity (m/s)")
+
+ax[3,0].legend()
+ax[3,0].set_xlabel("east(m)")
+ax[3,0].set_ylabel("north(m)")
+
+ax[3,1].legend()
+ax[3,1].set_xlabel("north(m)")
+ax[3,1].set_ylabel("altitude(m)")
+
+ax[3,2].legend()
+ax[3,2].set_xlabel("east(m)")
+ax[3,2].set_ylabel("altitude(m)")
+
+
 plt.subplots_adjust(hspace=1)
 
 plt.show()
